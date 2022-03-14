@@ -25,8 +25,8 @@ function [Jacobi] = compute_jacobi(ob_x, ob_z, x_min, x_max, z_up, z_down, Ms, I
         delta = step * abs(z_up(k));
         m_delta(k) = m_delta(k) + delta;
         z_up_delta = m_delta;
-        [Hax_1, Za_1, Delta_T_1] = magnetic_froward_2D(ob_x, ob_z, x_min, x_max, z_up, z_down, Ms, I_s);
-        [Hax_2, Za_2, Delta_T_2] = magnetic_froward_2D(ob_x, ob_z, x_min, x_max, z_up_delta, z_down, Ms, I_s);
+        [Hax_1, Za_1, Delta_T_1] = magnetic_forward_2D_Guan(ob_x, ob_z, x_min, x_max, z_up, z_down, Ms, I_s);
+        [Hax_2, Za_2, Delta_T_2] = magnetic_forward_2D_Guan(ob_x, ob_z, x_min, x_max, z_up_delta, z_down, Ms, I_s);
         Jacobi(:,k) = (1.0/delta)*(Delta_T_2 - Delta_T_1);
     end
 end

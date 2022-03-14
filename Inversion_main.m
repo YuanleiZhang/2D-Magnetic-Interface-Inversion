@@ -8,6 +8,7 @@ close all;
 clear;
 clc;
 load magnetic_responce.mat
+
 %% %%%%%%%%%%%%%%%%%   Inversion progress    %%%%%%%%%%%%%%%%% 
 % Inversion parameter
 % magnetization amplitude; Unit : (A/m)
@@ -27,25 +28,33 @@ inv_x_right = (x_start + inv_diff : inv_diff : x_end)';
 % Intital model (the buttom of Rock is known) equal to z_buttom
 inv_z_buttom = model_z_buttom;
 
-m_0 = model_z_buttom/3 * ones(inv_N, 1);
+m_0 = model_z_buttom/2 * ones(inv_N, 1);
 % Reference model
-m_ref = model_z_buttom/2 * ones(inv_N, 1);
+m_ref = 0 * ones(inv_N, 1);
 % Maximum number of iterations 
-maxit = 20; 
+maxit = 30; 
 % Tolerance
-TOL = 1e-3; 
+global TOL;
+global misfit_target;
+TOL = 1e-5;
+misfit_target = 0.35; % \Phi_d/ Number of observation
+% Constant lambda for 'gauss_newton_inversion.m'
+lambda = 1;
 % Intital number of regularization factor 
-lambda = 1e-1;
+max_lambda = 100;
+num_lambda = 15;
 % Cooling coefficient 
-c = 0.6;
+cooling_rate = 0.6;
 
 % Calculate data covariance matrix -Wd- and model covariance matrix -Wm- 
 % Wd
 N_Wd = size(observation_Delta_T, 1);
 N_Wm = size(m_0, 1);
+global W_d;
+global W_m;
 W_d = zeros(N_Wd, N_Wd);
 % relative_error
-relative_error = 0.02;
+relative_error = 0.05;
 for i = 1:N_Wd
    W_d(i,i) = 1/(relative_error * abs(observation_Delta_T(i)));
 end
@@ -68,51 +77,51 @@ end
 %% Wm2 最光滑约束
 W_m = W_m_2;
 tic % 计时
-for i = 1:maxit 
-    [J] = compute_jacobi(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
-    g_k = - J' * (W_d' * W_d) * (observation_Delta_T - magnetic_froward_2D(x_observation, z_observation,...
-                                         inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is)) + lambda * (W_m' * W_m) * (m_0 - m_ref);
-    H_k = J' * (W_d' * W_d) * J + lambda * (W_m' * W_m);
-    delta_m = pinv(H_k) * g_k;
-    [Hax_pre, Za_pre,d_pre] = magnetic_froward_2D(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
-    Rms(i) = norm(W_d*(observation_Delta_T - d_pre), 2)/(length(observation_Delta_T));
-    if Rms < 1  
-        break;
-    else
-        m_0 = m_0 - delta_m;
-    end
-end
-% for i = 1: maxit 
+% [recover_model, Rms] = gauss_newton_inversion(maxit, lambda, ...
+%                             observation_Delta_T, x_observation, z_observation,...
+%                             inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is, m_ref);
+
+[recover_model, Rms] = gauss_newton_inversion_cool(maxit, max_lambda, num_lambda, cooling_rate,...
+                                        observation_Delta_T, x_observation, ...
+                                        z_observation, inv_x_left, inv_x_right,...
+                                        m_0, inv_z_buttom, M, Is,m_ref);                        
+% for i = 1: maxit
 %      [J] = compute_jacobi(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
+%      [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
 %      % 选择合适的正则化因子
 %      numsteps = 10; % 计算10个正则化因子的值
-%      lambda_max = 100;
-%      lambda_min = 1e-4 * lambda_max;
+%      lambda_max = 1;
+%      lambda_min = 1e0 * lambda_max;
 %      lambda = logspace(log10(lambda_min),log10(lambda_max),numsteps);
-%      m_try = m_0;
+%      m_try = m_0;%+
 %      for j = 1:numsteps
-%           g_k = - J' * (W_d' * W_d) * (observation_Delta_T - magnetic_froward_2D(x_observation, z_observation,...
-%                                         inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is))...
-%                 + lambda(j) * (W_m' * W_m) * (m_0 - m_ref);
-%           H_k = J' * (W_d' * W_d) * J + lambda(j) * (W_m' * W_m);
+%          g_k = - J' * (W_d' * W_d) * (observation_Delta_T - delta_T_m0) + lambda(j) * (W_m' * W_m) * (m_0 - m_ref);
+%          H_k = J' * (W_d' * W_d) * J + lambda(j) * (W_m' * W_m);
 %          delta_m(:,j) = pinv(H_k) * g_k;
 %          m_try = m_try - delta_m(:,j);
-%          [Hax_pre(:,j), Za_pre(:,j),d_pre(:,j)] = magnetic_froward_2D(x_observation, z_observation, inv_x_left, inv_x_right, m_try, inv_z_buttom, M, Is);
-%          misfit(j) = norm(observation_Delta_T - d_pre(:,j))/norm(observation_Delta_T); %sqrt((rho_noise - d_pre(:,j))'*(rho_noise - d_pre(:,j))/(length(rho_noise)));    
+% %          if (max(m_try) > 0 || min(m_try) < inv_z_buttom) % 上下限约束
+% %              m_try = (max(m_try) + 1 - m_try)./ (max(m_try) - min(m_try)) * (inv_z_buttom);
+% %          end
+%          [Hax_pre(:,j), Za_pre(:,j),d_pre(:,j)] = magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left, inv_x_right, m_try, inv_z_buttom, M, Is);
+%          misfit(j) = ((observation_Delta_T - d_pre(:,j))'*W_d'*W_d*(observation_Delta_T - d_pre(:,j)))/length(observation_Delta_T); %sqrt((rho_noise - d_pre(:,j))'*(rho_noise - d_pre(:,j))/(length(rho_noise)));    
 %      end
 %      good_misfit = min(misfit);
 %      [good_misfit_row,good_misfit_column] = find(misfit == good_misfit); % 给出最小值 good_misfit 在矩阵(向量)misfit中的行号row和列号column
 %      good_delta_m = delta_m(:,good_misfit_column);
-%      Rms2(i) = good_misfit; 
-%      if Rms2 < TOL
+%      Rms(i) = good_misfit;
+%      if Rms(i) < misfit_target
 %          break;
 %      else
 %          m_0 = m_0 - good_delta_m;
+% %          if (max(m_0) > 0 || min(m_0) < inv_z_buttom) % 上下限约束
+% %              m_0 = (max(m_0) + 1 - m_0)./ (max(m_0) - min(m_0)) * (inv_z_buttom);
+% %          end
 %      end
 % end
 toc
-recover_model = m_0;
-recover_model_responce = magnetic_froward_2D(x_observation, z_observation, inv_x_left, inv_x_right, recover_model, inv_z_buttom, M, Is);
+[recover_model_Hax, recover_model_Za, recover_model_delta_T]=... 
+                magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left,...
+                                    inv_x_right, recover_model, inv_z_buttom, M, Is);
 
 %% plot section
 % plot settings
@@ -123,17 +132,13 @@ MarkerSize = 5;
 %%%%%%%%%%%%%%%%%%%%%%%    Inversion model    %%%%%%%%%%%%%%%%%%%%%%%%
 figure('Position',[200,400,1200,300])
 subplot(1,2,1)
-bar(x_model, model_z_up - model_z_buttom)
+plot(model_z_up, 'k-','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('Depth(m)')
 title('Orignal Model')
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
-ylim([0, -model_z_buttom])
-for i = 1 : abs(model_z_buttom / 10) + 1
-    Ylabel(i, 1) = (model_z_buttom + (i - 1)*10);
-end
-set(gca,'YTickLabel', num2str(Ylabel))
+
 subplot(1,2,2)
 plot(recover_model, 'k-','LineWidth', LineWidth)
 xlabel('x(m)')
@@ -141,26 +146,27 @@ ylabel('Depth(m)')
 title('Recover Model')
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
-% ylim([0, -model_z_buttom])
-% for i = 1 : abs(model_z_buttom / 10) + 1
-%     Ylabel(i, 1) = (model_z_buttom + (i - 1)*10);
-% end
-% set(gca,'YTickLabel', num2str(Ylabel))
+saveas(gcf, 'Inversion result-height-cooling', 'png')
 
  %****************  Plot data fitting and misfit   **********************
-figure('Position',[300,300,850,300]) 
+figure('Position',[300,300,950,300]) 
 subplot(1,2,1)
 plot(x_observation, observation_Delta_T, 'k^-','LineWidth', LineWidth)
 hold on
-plot(x_observation, recover_model_responce, 'r>-','LineWidth', LineWidth)
+plot(x_observation, recover_model_delta_T, 'r>-','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('\Delta T (nT)')
-legendon = legend('Observation Data', 'Recover model magnetic responce');
+legendon = legend('Observation Data', '\Delta_T of Recover model', 'Location', 'best');
 set(legendon,'box','off')
 set(gca,'fontsize',FontSize)
 subplot(1,2,2)
-plot(Rms,'k+-','LineWidth', LineWidth)
+Rms_temp = zeros(1);
+for i = 1 : size(Rms, 1)
+    Rms_temp = [Rms_temp, Rms(i,:)];
+end
+plot(Rms_temp(2:end),'k+-','LineWidth', LineWidth)
 % RMS2_end = Rms2(end);
 xlabel('Iteration (Times)')
 ylabel('RMS(%)')
 set(gca,'fontsize',FontSize)
+saveas(gcf, 'Inversion result-Fitting-cooling', 'png')

@@ -1,29 +1,30 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%  test_forward  %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%        test_singularity      %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author： Yuanlei Zhang
 % Time :2022/03/11
 close all; clear; clc
 
 %% model parameter
-% x1 = -5;
-% x2 = 5;
-% z1 = -5;
-% z2 = -15;
-% M = 10;
-% Is = 90;
-% I0 = 90;
-x1 = 400;
-x2 = 600;
-z1 = -150;
-z2 = -300;
-M = 100;
-Is = 45;
-I0 = 45;
+x1 = -5;
+x2 = 5;
+z1 = 0;
+z2 = -5;
+M = 10;
+Is = 90;
+I0 = 90;
+% x1 = 400;
+% x2 = 600;
+% z1 = -150;
+% z2 = -300;
+% M = 100;
+% Is = 45;
+% I0 = 45;
 
 %% observation sites
-% site_x = -30:1:30;
-site_x = 0 : 10 : 1000;
+site_x = -30:1:30;
+% site_x = 0 : 10 : 1000;
 site_z = 1;
 
 %% calculate magnetic components ----analytical solutions
@@ -86,6 +87,7 @@ subplot(2,2,3)
 plot(site_x, Za, 'k-','LineWidth', LineWidth)
 hold on
 plot(site_x, Za_Guan, 'or','LineWidth', LineWidth)
+plot(site_x, Za_vector, 'b^','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('Z_{a}(nT)')
 set(gca,'fontsize',FontSize)
@@ -99,4 +101,4 @@ ylabel('\Delta T(nT)')
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 
-saveas(gcf, 'test_model_liu_2020', 'png')
+saveas(gcf, 'test', 'png')
