@@ -52,7 +52,7 @@ function [Hax, Za, delta_T] = magnetic_forward_2D_Guan(x, z, x_min, x_max, z_up,
     assert(N_x_min == N_z_down)
     N_M = size(M, 1);
     if (N_M == 1)
-        M = M * ones(N_z_up);
+        M = M * ones(N_z_up, 1);
     elseif (N_M ~= N_z_up)
         disp('The dimensions of the input prism are inconsistent !')
     end

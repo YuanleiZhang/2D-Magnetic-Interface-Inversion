@@ -45,7 +45,7 @@ end
 M = M * ones(N,1);   % constant
 % M = y';              % ploynamial
 % Random data in peaks(N) : n
-n = 36; 
+n = 44; 
 grid = peaks(N);
 % Original model 
 model_z_up = average_depth - 3 * grid(:, n) + 5;

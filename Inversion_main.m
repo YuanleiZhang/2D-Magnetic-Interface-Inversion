@@ -12,7 +12,7 @@ load magnetic_responce.mat
 %% %%%%%%%%%%%%%%%%%   Inversion progress    %%%%%%%%%%%%%%%%% 
 % Inversion parameter
 % magnetization amplitude; Unit : (A/m)
-inv_M = 15;
+inv_M = 10;
 % Magnetized direction; Unit : degree(。)
 Is = 90;
 I0 = 90;
@@ -42,11 +42,11 @@ m_0 = inv_z_buttom/2 * ones(inv_N, 1);
 % Reference model
 m_ref = 0 * ones(inv_N, 1);
 % Maximum number of iterations 
-maxit = 30; 
+maxit = 20; 
 % Tolerance
 global TOL;
 global misfit_target;
-TOL = 1e-5;
+TOL = 1e-2;
 misfit_target = 0.3; % \Phi_d/ Number of observation
 % Constant lambda for 'gauss_newton_inversion.m'
 lambda = 1;
@@ -94,7 +94,7 @@ tic % 计时
 [recover_model, Rms] = gauss_newton_inversion_cool(maxit, max_lambda, num_lambda, cooling_rate,...
                                         observation_Delta_T, x_observation, ...
                                         z_observation, inv_x_left, inv_x_right,...
-                                        m_0, inv_z_buttom, inv_M, Is,m_ref);                        
+                                        m_0, inv_z_buttom, inv_M, Is,m_ref);    
 % for i = 1: maxit
 %      [J] = compute_jacobi(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
 %      [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
