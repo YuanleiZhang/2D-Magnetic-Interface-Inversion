@@ -8,7 +8,7 @@
 %   the right boundary of the rectangle:  x_max  [MM*1] : Unit(m)
 %   the top boundary of the rectangle  ： z_up   [MM*1] : Unit(m)
 %   the buttom boundary of the rectangl ：z_down [MM*1] or [1*1]: Unit(m)   known number
-%   magnetization ampitude ：M  [1*1]; Unit (A/m)
+%   magnetization ampitude ：M  [1*1] or [MM*1]; Unit (A/m)
 %   magnetized direction ：I_s  [1*1]; Unit(。)
 % Output :
 % Horizontal component of magntic field： Hax [NN*1]; Unit : nT
@@ -50,6 +50,12 @@ function [Hax, Za, delta_T] = magnetic_forward_2D_Guan(x, z, x_min, x_max, z_up,
         end
     end
     assert(N_x_min == N_z_down)
+    N_M = size(M, 1);
+    if (N_M == 1)
+        M = M * ones(N_z_up);
+    elseif (N_M ~= N_z_up)
+        disp('The dimensions of the input prism are inconsistent !')
+    end
     Hax = zeros(N_x, 1);
     Za = zeros(N_x, 1);
     delta_T = zeros(N_x, 1);
@@ -65,9 +71,9 @@ function [Hax, Za, delta_T] = magnetic_forward_2D_Guan(x, z, x_min, x_max, z_up,
         %%% analytical solution 1 --- Equation (3-1-89) refered to Zhining Guan(2005) 
         A = 0.5 * log(((z1.*z1 + x2.*x2).*(z2.*z2 + x1.*x1))./((z1.*z1 + x1.*x1).*(z2.*z2 + x2.*x2)));
         F = (atan((x1)./(z1)) - atan((x2)./(z1))) - (atan((x1)./(z2)) - atan((x2)./(z2)));
-        Hax_temp = C * 2 * M * (sin(pi* I_s / 180) .* A - cos(pi* I_s / 180) .* F);
-        Za_temp = C * 2 * M * (cos(pi * I_s / 180) .* A + sin(pi * I_s / 180) .* F);
-        delta_T_temp = C * 2 * M * (cos(pi * (90 - 2 * I_s) / 180) .* A - sin(pi * (90 - 2 * I_s) / 180) .* F);
+        Hax_temp = C * 2 * M(i) * (sin(pi* I_s / 180) .* A - cos(pi* I_s / 180) .* F);
+        Za_temp = C * 2 * M(i) * (cos(pi * I_s / 180) .* A + sin(pi * I_s / 180) .* F);
+        delta_T_temp = C * 2 * M(i) * (cos(pi * (90 - 2 * I_s) / 180) .* A - sin(pi * (90 - 2 * I_s) / 180) .* F);
         %%% analytical solution 2 --- Equation (2.1 - 2.6) refered to Suang liu(2020) 
 %         E = log(((z2.*z2 + x1.*x1).* (z1.*z1 + x2.*x2))./(((z1.*z1 + x1.*x1)).*(z2.*z2 + x2.*x2)));
 %         F1 = atan((2.*b.*z1)./(z1.*z1 + (x1 - b).*(x1 - b) - b.*b)) - atan((2.*b.*z2)./(z2.*z2 +(x1 - b).*(x1 - b) - b.*b));

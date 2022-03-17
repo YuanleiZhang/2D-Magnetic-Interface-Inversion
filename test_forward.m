@@ -18,8 +18,8 @@ x2 = 600;
 z1 = -150;
 z2 = -300;
 M = 100;
-Is = 45;
-I0 = 45;
+Is = -45;
+I0 = -45;
 
 %% observation sites
 % site_x = -30:1:30;
@@ -64,7 +64,7 @@ rectangle('position',[x1, z2, x2 - x1, abs(z2 - z1)], ...
           'LineWidth', LineWidth);
 quiver(x1 + 0.1*(x2 - x1), z1 + 0.1*(z2 - z1),...
         0.7*sqrt((z2 - z1)*(z2 - z1) + (x2 - x1)*(x2 - x1))* cos(pi * Is / 180),...
-        -0.7*sqrt((z2-z1)*(z2-z1) + (x2-x1)*(x2-x1))* sin(pi * Is / 180),...
+        0.7*sqrt((z2-z1)*(z2-z1) + (x2-x1)*(x2-x1))* sin(pi * Is / 180),...
         'MaxHeadSize', 23, 'color', 'b', 'LineWidth',LineWidth)
 set(gca,'xaxislocation','top','yaxislocation','left');
 xlabel('x(m)')
@@ -75,7 +75,7 @@ subplot(2,2,2)
 plot(site_x, Hax, 'k-','LineWidth', LineWidth)
 hold on
 plot(site_x, Hax_Guan, 'ro','LineWidth', LineWidth)
-plot(site_x, Hax_vector, 'b^','LineWidth', LineWidth)
+% plot(site_x, Hax_vector, 'b^','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('H_{ax}(nT)')
 legendon = legend('Analytic solution of Liu(2020)','Analytic solution of Guan(2005)','Location','NorthWest');

@@ -7,8 +7,8 @@ close all;
 clear;
 clc;
 
-%% Data produce  
-% magnetization amplitude; Unit : (A/m)
+%% Data produce
+% Homogeneous magnetization amplitude; Unit : (A/m)
 M = 10;
 % Magnetized direction; Unit : degree(。)
 Is = 90;
@@ -24,6 +24,26 @@ diff = (x_end - x_start) / N;
 x_model = (x_start + diff/2 : diff : x_end - diff/2)';
 x_model_left = (x_start : diff : x_end - diff)';
 x_model_right = (x_start + diff : diff : x_end)';
+% Uneven magnetization ampitude -- polynomial 
+x0 = [20, 30, 40, 50, 70, 90];  % 通过已知几点的磁化强度 拟合 全区域横向磁化强度变化函数表达式
+y0 = [15, 18, 25, 16, 12, 6];
+m = [3];  % 确定用几阶多项式拟合
+x = x_model'; %确定拟合范围
+y = zeros(size(m,2),size(x,2));%初始化迭代矩阵，防止有初值的影响
+for k = 1: size(m, 1)
+    coeff_M = zeros(1,m(k)+1);
+    % Calculate the fitting polynomial coefficients
+    coeff_M(1,:) = Least_square_fit(x0,y0,m(k))
+    n = size(x,2);
+    for i = 1:m(k)+1
+        for j = 1:n
+            y(k,j) = y(k,j)+ coeff_M(i)* x(j)^(i-1);
+        end
+    end
+end
+% 选择用 常量 or 多项式 磁化强度
+M = M * ones(N,1);   % constant
+% M = y';              % ploynamial
 % Random data in peaks(N) : n
 n = 36; 
 grid = peaks(N);
@@ -33,7 +53,7 @@ model_z_up = average_depth - 3 * grid(:, n) + 5;
 model_z_buttom = floor(min(model_z_up*0.1))*10;
 
 % Observation sites : x 
-x_observation = (x_start : 1 : x_end)';
+x_observation = (x_start : 2 : x_end)';
 
 % Observation height
 z_observation = 1;
@@ -46,7 +66,7 @@ for i = 1: size(x_observation, 1)
     for j = 1 : size(model_z_up, 1)
         [Hax_temp, Za_temp, Delta_T_temp] = magnetic_forward_2D(x_observation(i), z_observation, ...
                               x_start + diff*(j - 1), x_start + diff*(j), model_z_up(j),...
-                              model_z_buttom, M, Is);
+                              model_z_buttom, M(j), Is);
         Hax(i,1) = Hax(i,1) + Hax_temp;
         Za(i,1) = Za(i,1) + Za_temp;
 %         Delta_T_temp = Hax_temp * cos(pi * I0 / 180) + Za_temp*sin(pi * I0 / 180);
@@ -75,7 +95,8 @@ end
 epsilon = 0.05;
 noise = 2*(0.5-rand(size(Delta_T)))* epsilon .* Delta_T;
 observation_Delta_T = Delta_T + noise;
-save('magnetic_responce','x_model', 'x_model_left', 'x_model_right', 'model_z_up','model_z_buttom','x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T');
+save('magnetic_responce','x_model', 'x_model_left', 'x_model_right', 'model_z_up','model_z_buttom',...
+        'x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T', 'M', 'coeff_M');
 
 
 
@@ -88,10 +109,18 @@ MarkerSize = 5;
 % plot_model
 figure('Position',[100,200,1200,300])
 subplot(1,2,1)
-plot(x_model, model_z_up, 'k-', 'LineWidth', LineWidth)
+yyaxis left;
+plot(x_model, model_z_up, 'k-', 'Linewidth', LineWidth)
 xlabel('x(m)')
 ylabel('Depth(m)')
 title('Orignal model')
+ax = gca;
+ax.YColor = 'k';
+yyaxis right;
+plot(x_model, M, 'r--', 'Linewidth', LineWidth)
+ylabel('Magnetization(A/m)')
+ax = gca;
+ax.YColor = 'r';
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 subplot(1,2,2)
@@ -102,8 +131,8 @@ title('Divided the Orignal Model into Quadrilaterals')
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 ylim([0, -model_z_buttom])
-for i = 1 : abs(model_z_buttom / 10) + 1
-    Ylabel(i, 1) = (model_z_buttom + (i - 1)*10);
+for i = 1 : abs(model_z_buttom / 5) + 1
+    Ylabel(i, 1) = (model_z_buttom + (i - 1)*5);
 end
 set(gca,'YTickLabel', num2str(Ylabel))
 saveas(gcf, 'Orignal model', 'png')

@@ -9,7 +9,7 @@
 %   the top boundary of the rectangle  ： z_up   [MM*1] :Unit(m) This is the inversion parameter
 %                                        in this program to compute Jacoobi Matrix
 %   the buttom boundary of the rectangl ：z_down [1*1] :Unit(m)   known number
-%   magnetization ampitude ：M  [1*1]; Unit (A/m)
+%   magnetization ampitude ：M  [MM*1]; Unit (A/m)
 %   magnetized direction ：I_s  [1*1]; Unit(。)
 
 % Output : Jacoobi Matrix --->[NN*MM] 

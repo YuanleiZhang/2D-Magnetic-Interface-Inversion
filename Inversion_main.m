@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%        Inversion progress    %%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%  only inversion height of interface     %%%%%%%%%%%
+%%%%%%%%%%%%%    only invert height of interface     %%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author： Yuanlei Zhang
 % Time :2022/03/11
@@ -12,7 +12,7 @@ load magnetic_responce.mat
 %% %%%%%%%%%%%%%%%%%   Inversion progress    %%%%%%%%%%%%%%%%% 
 % Inversion parameter
 % magnetization amplitude; Unit : (A/m)
-M = 10;
+inv_M = 15;
 % Magnetized direction; Unit : degree(。)
 Is = 90;
 I0 = 90;
@@ -27,8 +27,18 @@ inv_x_left = (x_start : inv_diff : x_end - inv_diff)';
 inv_x_right = (x_start + inv_diff : inv_diff : x_end)';
 % Intital model (the buttom of Rock is known) equal to z_buttom
 inv_z_buttom = model_z_buttom;
-
-m_0 = model_z_buttom/2 * ones(inv_N, 1);
+% **************** 根据已知的磁化强度信息拟合出多项式函数 ***********
+x = inv_x_model';
+y = zeros(1, inv_N);%初始化迭代矩阵，防止有初值的影响
+for i = 1 : size(coeff_M, 2)
+        for j = 1 : inv_N
+            y(j) = y(j)+ coeff_M(i)* x(j)^(i-1);
+        end
+end
+% 选择用 常量 or 多项式 磁化强度
+inv_M = inv_M* ones(inv_N, 1); % constant
+% inv_M = y';                   % ploynamial
+m_0 = inv_z_buttom/2 * ones(inv_N, 1);
 % Reference model
 m_ref = 0 * ones(inv_N, 1);
 % Maximum number of iterations 
@@ -37,7 +47,7 @@ maxit = 30;
 global TOL;
 global misfit_target;
 TOL = 1e-5;
-misfit_target = 0.35; % \Phi_d/ Number of observation
+misfit_target = 0.3; % \Phi_d/ Number of observation
 % Constant lambda for 'gauss_newton_inversion.m'
 lambda = 1;
 % Intital number of regularization factor 
@@ -77,14 +87,14 @@ end
 %% Wm2 最光滑约束
 W_m = W_m_2;
 tic % 计时
-[recover_model, Rms] = gauss_newton_inversion(maxit, lambda, ...
-                            observation_Delta_T, x_observation, z_observation,...
-                            inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is, m_ref);
+% [recover_model, Rms] = gauss_newton_inversion(maxit, lambda, ...
+%                             observation_Delta_T, x_observation, z_observation,...
+%                             inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is, m_ref);
 
-% [recover_model, Rms] = gauss_newton_inversion_cool(maxit, max_lambda, num_lambda, cooling_rate,...
-%                                         observation_Delta_T, x_observation, ...
-%                                         z_observation, inv_x_left, inv_x_right,...
-%                                         m_0, inv_z_buttom, M, Is,m_ref);                        
+[recover_model, Rms] = gauss_newton_inversion_cool(maxit, max_lambda, num_lambda, cooling_rate,...
+                                        observation_Delta_T, x_observation, ...
+                                        z_observation, inv_x_left, inv_x_right,...
+                                        m_0, inv_z_buttom, inv_M, Is,m_ref);                        
 % for i = 1: maxit
 %      [J] = compute_jacobi(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
 %      [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left, inv_x_right, m_0, inv_z_buttom, M, Is);
@@ -121,7 +131,7 @@ tic % 计时
 toc
 [recover_model_Hax, recover_model_Za, recover_model_delta_T]=... 
                 magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left,...
-                                    inv_x_right, recover_model, inv_z_buttom, M, Is);
+                                    inv_x_right, recover_model, inv_z_buttom, inv_M, Is);
 
 %% plot section
 % plot settings
@@ -132,18 +142,33 @@ MarkerSize = 5;
 %%%%%%%%%%%%%%%%%%%%%%%    Inversion model    %%%%%%%%%%%%%%%%%%%%%%%%
 figure('Position',[200,400,1200,300])
 subplot(1,2,1)
-plot(model_z_up, 'k-','LineWidth', LineWidth)
+yyaxis left;
+plot(x_model, model_z_up, 'k-', 'Linewidth', LineWidth)
 xlabel('x(m)')
 ylabel('Depth(m)')
-title('Orignal Model')
+title('Orignal model')
+ax = gca;
+ax.YColor = 'k';
+yyaxis right;
+plot(x_model, M, 'r--', 'Linewidth', LineWidth)
+ylabel('Magnetization(A/m)')
+ax = gca;
+ax.YColor = 'r';
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
-
 subplot(1,2,2)
-plot(recover_model, 'k-','LineWidth', LineWidth)
+yyaxis left;
+plot(inv_x_model, recover_model, 'k-', 'Linewidth', LineWidth)
 xlabel('x(m)')
 ylabel('Depth(m)')
-title('Recover Model')
+title('Orignal model')
+ax = gca;
+ax.YColor = 'k';
+yyaxis right;
+plot(inv_x_model, inv_M, 'r--', 'Linewidth', LineWidth)
+ylabel('Magnetization(A/m)')
+ax = gca;
+ax.YColor = 'r';
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 saveas(gcf, 'Inversion result-height-cooling', 'png')
@@ -159,14 +184,15 @@ ylabel('\Delta T (nT)')
 legendon = legend('Observation Data', '\Delta_T of Recover model', 'Location', 'best');
 set(legendon,'box','off')
 set(gca,'fontsize',FontSize)
+set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 subplot(1,2,2)
-Rms_temp = zeros(1);
-for i = 1 : size(Rms, 1)
-    Rms_temp = [Rms_temp, Rms(i,:)];
-end
-plot(Rms_temp(2:end),'k+-','LineWidth', LineWidth)
+Rms_temp = Rms';
+Rms_temp(find(Rms_temp==0))=[];
+plot(Rms_temp,'k+-','LineWidth', LineWidth)
 % RMS2_end = Rms2(end);
 xlabel('Iteration (Times)')
 ylabel('RMS(%)')
 set(gca,'fontsize',FontSize)
+set(gca,'fontsize',FontSize)
+set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 saveas(gcf, 'Inversion result-Fitting-cooling', 'png')

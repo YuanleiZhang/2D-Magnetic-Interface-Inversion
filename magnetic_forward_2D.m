@@ -50,6 +50,12 @@ function [Hax, Za, delta_T] = magnetic_forward_2D(x, z, x_min, x_max, z_up, z_do
         end
     end
     assert(N_x_min == N_z_down)
+    N_M = size(M, 1);
+    if (N_M == 1)
+        M = M * ones(N_z_up);
+    elseif (N_M ~= N_z_up)
+        disp('The dimensions of the input prism are inconsistent !')
+    end
     Hax = zeros(N_x, 1);
     Za = zeros(N_x, 1);
     delta_T = zeros(N_x, 1);
@@ -66,8 +72,8 @@ function [Hax, Za, delta_T] = magnetic_forward_2D(x, z, x_min, x_max, z_up, z_do
         %%% analytical solution 2 --- Equation (2.1 - 2.6) refered to Suang liu(2020) 
         E = log(((z2.*z2 + x1.*x1).* (z1.*z1 + x2.*x2))./(((z1.*z1 + x1.*x1)).*(z2.*z2 + x2.*x2)));
         F1 = atan((2.*b.*z1)./(z1.*z1 + (x1 - b).*(x1 - b) - b.*b)) - atan((2.*b.*z2)./(z2.*z2 +(x1 - b).*(x1 - b) - b.*b));
-        Hax_temp = C .* 2 .* M .* (0.5 .* sin(pi .* I_s ./ 180) .* E - cos (pi .* I_s ./ 180).* F1);
-        Za_temp = C .* 2 .* M .* (0.5 .* cos(pi .* I_s ./ 180) .* E + sin (pi .* I_s ./ 180).* F1);
+        Hax_temp = C .* 2 .* M(i) .* (0.5 .* sin(pi .* I_s ./ 180) .* E - cos (pi .* I_s ./ 180).* F1);
+        Za_temp = C .* 2 .* M(i) .* (0.5 .* cos(pi .* I_s ./ 180) .* E + sin (pi .* I_s ./ 180).* F1);
         delta_T_temp = Hax_temp .* cos(pi .* I_s ./ 180) + Za_temp .* sin(pi .* I_s ./ 180);
         Hax = Hax + Hax_temp;
         Za = Za + Za_temp;
