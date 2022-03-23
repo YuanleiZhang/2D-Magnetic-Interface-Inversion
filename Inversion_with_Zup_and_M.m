@@ -32,6 +32,7 @@ inv_x_right = (x_start + inv_diff : inv_diff : x_end)';
 inv_z_buttom = model_z_buttom;
 % Reference model
 m_ref = 0 * ones(inv_N, 1);
+M_ref = 0 * ones(inv_N, 1);
 % Maximum number of iterations 
 maxit = 20; 
 % Tolerance
@@ -77,15 +78,21 @@ end
 %% Start inversion
 % inversion model magnetization M --> M and model_z_up --> m_0
 W_m = W_m_2;
-M_0 = 0;
+M_0 = 1 * ones(inv_N, 1);
 m_0 = inv_z_buttom/2 * ones(inv_N, 1);
-
+M_ref_min = 5;
+M_ref_max = 15;
 tic % 计时
+% [recover_model, recover_M, Rms] = invert_z_up_and_constant_M(maxit, max_lambda, num_lambda, cooling_rate,...
+%                                         observation_Delta_T, x_observation, ...
+%                                         z_observation, inv_x_left, inv_x_right,...
+%                                         m_0, inv_z_buttom, M_0, Is, m_ref);
+
 [recover_model, recover_M, Rms] = invert_z_up_and_M(maxit, max_lambda, num_lambda, cooling_rate,...
                                         observation_Delta_T, x_observation, ...
                                         z_observation, inv_x_left, inv_x_right,...
-                                        m_0, inv_z_buttom, M_0, Is, m_ref);
-
+                                        m_0, inv_z_buttom, M_0, Is, m_ref, M_ref, M_ref_min, M_ref_max);
+                                    
 toc
 [recover_model_Hax, recover_model_Za, recover_model_delta_T]=... 
                 magnetic_forward_2D_Guan(x_observation, z_observation, inv_x_left,...

@@ -12,7 +12,7 @@ load magnetic_responce.mat
 %% %%%%%%%%%%%%%%%%%   Inversion progress    %%%%%%%%%%%%%%%%% 
 % Inversion parameter
 % magnetization amplitude; Unit : (A/m)
-inv_M = 10;
+inv_M = 15;
 % Magnetized direction; Unit : degree(。)
 Is = 90;
 I0 = 90;

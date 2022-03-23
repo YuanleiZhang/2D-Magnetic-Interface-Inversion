@@ -27,9 +27,9 @@ x_model_right = (x_start + diff : diff : x_end)';
 % Uneven magnetization ampitude -- polynomial 
 x0 = [20, 30, 40, 50, 70, 90];  % 通过已知几点的磁化强度 拟合 全区域横向磁化强度变化函数表达式
 y0 = [15, 18, 25, 16, 12, 6];
-m = [3];  % 确定用几阶多项式拟合
+m = [3];      % 确定用几阶多项式拟合
 x = x_model'; %确定拟合范围
-y = zeros(size(m,2),size(x,2));%初始化迭代矩阵，防止有初值的影响
+y = zeros(size(m,2),size(x,2)); %初始化迭代矩阵，防止有初值的影响
 for k = 1: size(m, 1)
     coeff_M = zeros(1,m(k)+1);
     % Calculate the fitting polynomial coefficients
@@ -45,7 +45,7 @@ end
 M = M * ones(N,1);   % constant
 % M = y';              % ploynamial
 % Random data in peaks(N) : n
-n = 44; 
+n = 27; 
 grid = peaks(N);
 % Original model 
 model_z_up = average_depth - 3 * grid(:, n) + 5;
