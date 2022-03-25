@@ -25,7 +25,7 @@ x_model = (x_start + diff/2 : diff : x_end - diff/2)';
 x_model_left = (x_start : diff : x_end - diff)';
 x_model_right = (x_start + diff : diff : x_end)';
 % Uneven magnetization ampitude -- polynomial 
-x0 = [20, 30, 40, 50, 70, 90];  % 通过已知几点的磁化强度 拟合 全区域横向磁化强度变化函数表达式
+x0 = [10, 30, 40, 50, 70, 90];  % 通过已知几点的磁化强度 拟合 全区域横向磁化强度变化函数表达式
 y0 = [15, 18, 25, 16, 12, 6];
 m = [3];      % 确定用几阶多项式拟合
 x = x_model'; %确定拟合范围
@@ -42,10 +42,10 @@ for k = 1: size(m, 1)
     end
 end
 % 选择用 常量 or 多项式 磁化强度
-M = M * ones(N,1);   % constant
-% M = y';              % ploynamial
+% M = M * ones(N,1);   % constant
+M = y';              % ploynamial
 % Random data in peaks(N) : n
-n = 27; 
+n = 77; 
 grid = peaks(N);
 % Original model 
 model_z_up = average_depth - 3 * grid(:, n) + 5;
@@ -96,7 +96,7 @@ epsilon = 0.05;
 noise = 2*(0.5-rand(size(Delta_T)))* epsilon .* Delta_T;
 observation_Delta_T = Delta_T + noise;
 save('magnetic_responce','x_model', 'x_model_left', 'x_model_right', 'model_z_up','model_z_buttom',...
-        'x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T', 'M', 'coeff_M');
+        'x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T', 'M', 'coeff_M', 'x0', 'y0');
 
 
 
@@ -118,6 +118,8 @@ ax = gca;
 ax.YColor = 'k';
 yyaxis right;
 plot(x_model, M, 'r--', 'Linewidth', LineWidth)
+hold on
+plot(x0, y0, 'bd', 'Linewidth', LineWidth)
 ylabel('Magnetization(A/m)')
 ax = gca;
 ax.YColor = 'r';

@@ -16,8 +16,8 @@ function [recover_model, recover_M, Rms] = invert_z_up_and_M(maxit, max_lambda, 
     I = ones(size(inv_z_up_0, 1));  % A [MM * MM] unit matrix
     [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation,...
                                                     inv_x_left, inv_x_right, inv_z_up_0, inv_z_buttom, M_0, Is);
-        Rms(1, 1) = ((observation_Delta_T - delta_T_m0)'...
-                            *(W_d' * W_d)*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T));
+        Rms(1, 1) = sqrt(((observation_Delta_T - delta_T_m0)'...
+                            *(W_d' * W_d)*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T)));
         disp(['Lambda = ', num2str(lambda), '       ', 'misfit = ', num2str(Rms(1, 1))]);
         misfit_last = Rms(1,1);
     for k = 1 : num_lambda
@@ -48,14 +48,14 @@ function [recover_model, recover_M, Rms] = invert_z_up_and_M(maxit, max_lambda, 
             end
             M_0 = M_0 + delta_M;
             % 加入 上下限约束 - 约束岩石的物性在先验资料的磁化率范围内  -  使用归一化方法
-            if (max(M_0) > M_max || min(M_0) < M_min) % 上下限约束 -  约束基岩的上界面只能在 [0, model_z_buttom]
-                    M_0 = M_min + (max(M_0) + 1 - M_0)./ (max(M_0) - min(M_0)) * (M_max - M_min);
+            if (max(M_0) > M_max || min(M_0) < M_min) % 上下限约束 -  约束基岩的磁化强度只能在[M_min, M_max]
+                    M_0 = M_min + ((M_0) - min(M_0))./ (max(M_0) - min(M_0)) * (M_max - M_min);
             end
             
             [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation,...
                                                     inv_x_left, inv_x_right, inv_z_up_0, inv_z_buttom, M_0, Is);
-            Rms(k, j + 1) = ((observation_Delta_T - delta_T_m0)'...
-                             *W_d' * W_d*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T));
+            Rms(k, j + 1) = sqrt(((observation_Delta_T - delta_T_m0)'...
+                             *W_d' * W_d*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T)));
             misfit_last = Rms(k, j + 1);
             disp(['Lambda = ', num2str(lambda), '       ', 'misfit = ', num2str(Rms(k, j + 1))]);
             if misfit_last < misfit_target

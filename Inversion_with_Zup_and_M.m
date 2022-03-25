@@ -44,7 +44,7 @@ misfit_target = 1; % \Phi_d/ Number of observation
 lambda = 1;
 % Intital number of regularization factor 
 max_lambda = 100;
-num_lambda = 10;
+num_lambda = 15;
 % Cooling coefficient 
 cooling_rate = 0.6;
 % Calculate data covariance matrix -Wd- and model covariance matrix -Wm- 
@@ -77,11 +77,11 @@ end
 
 %% Start inversion
 % inversion model magnetization M --> M and model_z_up --> m_0
-W_m = W_m_2;
+W_m = W_m_1;
 M_0 = 1 * ones(inv_N, 1);
 m_0 = inv_z_buttom/2 * ones(inv_N, 1);
 M_ref_min = 5;
-M_ref_max = 15;
+M_ref_max = 20;
 tic % 计时
 % [recover_model, recover_M, Rms] = invert_z_up_and_constant_M(maxit, max_lambda, num_lambda, cooling_rate,...
 %                                         observation_Delta_T, x_observation, ...
@@ -116,6 +116,8 @@ ax = gca;
 ax.YColor = 'k';
 yyaxis right;
 plot(x_model, M, 'r--', 'Linewidth', LineWidth)
+hold on
+plot(x0, y0, 'bd', 'Linewidth', LineWidth)
 ylabel('Magnetization(A/m)')
 ax = gca;
 ax.YColor = 'r';
