@@ -41,14 +41,29 @@ for k = 1: size(m, 1)
         end
     end
 end
-% 选择用 常量 or 多项式 磁化强度
-% M = M * ones(N,1);   % constant
-M = y';              % ploynamial
+% 选择用 常量 or 多项式 磁化强度， true(1)表示选用多项式，false(0)表示选用常数
+using_polynamial = 0;    
+if (using_polynamial)
+    M = y';              % ploynamial
+else 
+    y0 = M * ones(1, size(x0, 2));   % 建立常数磁化率的先验信息向量，方便反演中加入先验信息
+    M = M * ones(N,1);               % constant
+end
+% 
 % Random data in peaks(N) : n
-n = 77; 
+n = 37;        % 选择任意一组作为界面模型，注意不要超出地面
 grid = peaks(N);
 % Original model 
 model_z_up = average_depth - 3 * grid(:, n) + 5;
+% reference model of z_up
+h0 = zeros(1, size(x0, 2));
+for i = 1 : size(x0, 2)
+    for j = 1 : N
+        if (x0(i) >= x_model_left(j) && x0(i) < x_model_right(j))
+            h0(i) = model_z_up(j);
+        end
+    end
+end
 % Buttom depth of interface
 model_z_buttom = floor(min(model_z_up*0.1))*10;
 
@@ -96,7 +111,7 @@ epsilon = 0.05;
 noise = 2*(0.5-rand(size(Delta_T)))* epsilon .* Delta_T;
 observation_Delta_T = Delta_T + noise;
 save('magnetic_responce','x_model', 'x_model_left', 'x_model_right', 'model_z_up','model_z_buttom',...
-        'x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T', 'M', 'coeff_M', 'x0', 'y0');
+        'x_observation', 'z_observation', 'Hax', 'Za', 'Delta_T', 'observation_Delta_T', 'M', 'coeff_M', 'x0', 'y0', 'h0');
 
 
 
@@ -143,7 +158,7 @@ figure('Position',[200,100,750,500])
 subplot(2,2,1)
 plot(x_observation, Hax, 'k-','LineWidth', LineWidth)
 hold on
-plot(x_observation, Hax_vector, 'ro','LineWidth', LineWidth)
+% plot(x_observation, Hax_vector, 'ro','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('H_{ax}(nT)')
 set(gca,'fontsize',FontSize)
@@ -151,7 +166,7 @@ set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight
 subplot(2,2,2)
 plot(x_observation, Za, 'k-','LineWidth', LineWidth)
 hold on
-plot(x_observation, Za_vector, 'ro','LineWidth', LineWidth)
+% plot(x_observation, Za_vector, 'ro','LineWidth', LineWidth)
 xlabel('x(m)')
 ylabel('Z_{a}(nT)')
 set(gca,'fontsize',FontSize)

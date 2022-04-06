@@ -16,8 +16,8 @@ function [recover_model, recover_M, Rms] = invert_z_up_and_constant_M(maxit, max
     I = ones(size(m_0, 1));  % A [MM * MM] unit matrix
     [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation,...
                                                     inv_x_left, inv_x_right, m_0, inv_z_buttom, M_0, Is);
-        Rms(1, 1) = ((observation_Delta_T - delta_T_m0)'...
-                            *(W_d' * W_d)*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T));
+        Rms(1, 1) = sqrt(((observation_Delta_T - delta_T_m0)'...
+                            *(W_d' * W_d)*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T)));
         disp(['Lambda = ', num2str(lambda), '       ', 'misfit = ', num2str(Rms(1, 1))]);
         misfit_last = Rms(1,1);
     for k = 1 : num_lambda
@@ -42,8 +42,8 @@ function [recover_model, recover_M, Rms] = invert_z_up_and_constant_M(maxit, max
             end
             [Hax_m0, Za_m0, delta_T_m0] = magnetic_forward_2D_Guan(x_observation, z_observation,...
                                                     inv_x_left, inv_x_right, m_0, inv_z_buttom, M_0, Is);
-            Rms(k, j + 1) = ((observation_Delta_T - delta_T_m0)'...
-                             *W_d' * W_d*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T));
+            Rms(k, j + 1) = sqrt(((observation_Delta_T - delta_T_m0)'...
+                             *W_d' * W_d*(observation_Delta_T - delta_T_m0))/(length(observation_Delta_T)));
             misfit_last = Rms(k, j + 1);
             disp(['Lambda = ', num2str(lambda), '       ', 'misfit = ', num2str(Rms(k, j + 1))]);
             if misfit_last < misfit_target

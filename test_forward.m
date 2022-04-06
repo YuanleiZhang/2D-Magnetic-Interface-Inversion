@@ -6,24 +6,24 @@
 close all; clear; clc
 
 %% model parameter
-% x1 = -5;
-% x2 = 5;
-% z1 = -5;
-% z2 = -15;
-% M = 10;
-% Is = 90;
-% I0 = 90;
-x1 = 400;
-x2 = 600;
-z1 = -150;
-z2 = -300;
-M = 100;
-Is = -45;
-I0 = -45;
+x1 = -5;
+x2 = 5;
+z1 = -0;
+z2 = -10;
+M = 10;
+Is = -90;
+I0 = -90;
+% x1 = 400;
+% x2 = 600;
+% z1 = -150;
+% z2 = -300;
+% M = 100;
+% Is = -45;
+% I0 = -45;
 
 %% observation sites
-% site_x = -30:1:30;
-site_x = 0 : 10 : 1000;
+site_x = -30:1:30;
+% site_x = 0 : 10 : 1000;
 site_z = 1;
 
 %% calculate magnetic components ----analytical solutions

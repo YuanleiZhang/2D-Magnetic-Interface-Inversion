@@ -12,7 +12,7 @@ load magnetic_responce.mat
 %% %%%%%%%%%%%%%%%%%   Inversion progress    %%%%%%%%%%%%%%%%% 
 % Inversion parameter
 % magnetization amplitude; Unit : (A/m)
-inv_M = 15;
+inv_M = 10;
 % Magnetized direction; Unit : degree(。)
 Is = 90;
 I0 = 90;
@@ -47,7 +47,7 @@ maxit = 20;
 global TOL;
 global misfit_target;
 TOL = 1e-2;
-misfit_target = 0.3; % \Phi_d/ Number of observation
+misfit_target = 0.7; % \Phi_d/ Number of observation
 % Constant lambda for 'gauss_newton_inversion.m'
 lambda = 1;
 % Intital number of regularization factor 
@@ -140,8 +140,8 @@ LineWidth = 1.5;
 MarkerSize = 5;
 
 %%%%%%%%%%%%%%%%%%%%%%%    Inversion model    %%%%%%%%%%%%%%%%%%%%%%%%
-figure('Position',[200,400,1200,300])
-subplot(1,2,1)
+figure('Position',[200,100,1200,600])
+subplot(2,2,1)
 yyaxis left;
 plot(x_model, model_z_up, 'k-', 'Linewidth', LineWidth)
 xlabel('x(m)')
@@ -156,11 +156,12 @@ ax = gca;
 ax.YColor = 'r';
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
-subplot(1,2,2)
+subplot(2,2,2)
 yyaxis left;
 plot(inv_x_model, recover_model, 'k-', 'Linewidth', LineWidth)
 xlabel('x(m)')
 ylabel('Depth(m)')
+% ylim([inv_z_buttom, -10])
 title('Orignal model')
 ax = gca;
 ax.YColor = 'k';
@@ -173,9 +174,9 @@ set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
 saveas(gcf, 'Inversion result-height-cooling', 'png')
 
- %****************  Plot data fitting and misfit   **********************
-figure('Position',[300,300,950,300]) 
-subplot(1,2,1)
+%  %****************  Plot data fitting and misfit   **********************
+% figure('Position',[300,300,950,300]) 
+subplot(2,2,3)
 plot(x_observation, observation_Delta_T, 'k^-','LineWidth', LineWidth)
 hold on
 plot(x_observation, recover_model_delta_T, 'r>-','LineWidth', LineWidth)
@@ -185,13 +186,13 @@ legendon = legend('Observation Data', '\Delta_T of Recover model', 'Location', '
 set(legendon,'box','off')
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
-subplot(1,2,2)
+subplot(2,2,4)
 Rms_temp = Rms';
 Rms_temp(find(Rms_temp==0))=[];
 plot(Rms_temp,'k+-','LineWidth', LineWidth)
 % RMS2_end = Rms2(end);
 xlabel('Iteration (Times)')
-ylabel('RMS(%)')
+ylabel('RMS')
 set(gca,'fontsize',FontSize)
 set(gca,'fontsize',FontSize)
 set(gca,'FontName','Arial','fontsize',FontSize,'Linewidth',LineWidth,'fontweight','normal')
